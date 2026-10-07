@@ -1,0 +1,197 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile for registered caregivers",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "displayName": { "type": "string", "maxLength": 128 },
+        "circleId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["uid", "email"]
+    },
+    "CareCircle": {
+      "title": "CareCircle",
+      "description": "Care circle coordinating patient care",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "primaryCaregiverUid": { "type": "string", "maxLength": 128 },
+        "memberUids": { "type": "array" },
+        "planVersion": { "type": "number" },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "name", "primaryCaregiverUid"]
+    },
+    "PlanItem": {
+      "title": "PlanItem",
+      "description": "Scheduled care routine or reminder item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "circleId": { "type": "string", "maxLength": 128 },
+        "time": { "type": "string", "maxLength": 32 },
+        "timeOfDay": { "type": "string", "enum": ["morning", "afternoon", "evening"] },
+        "titleAs": { "type": "string", "maxLength": 256 },
+        "titleEn": { "type": "string", "maxLength": 256 },
+        "category": { "type": "string", "maxLength": 64 },
+        "icon": { "type": "string", "maxLength": 64 },
+        "audioCuePrompt": { "type": "string", "maxLength": 512 },
+        "days": { "type": "array" },
+        "isActive": { "type": "boolean" },
+        "isDraft": { "type": "boolean" }
+      },
+      "required": ["id", "circleId", "time", "titleAs", "titleEn"]
+    },
+    "MemoryItem": {
+      "title": "MemoryItem",
+      "description": "Family photo memory for cognitive recall",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "circleId": { "type": "string", "maxLength": 128 },
+        "imageUrl": { "type": "string", "maxLength": 2048 },
+        "titleAs": { "type": "string", "maxLength": 256 },
+        "titleEn": { "type": "string", "maxLength": 256 },
+        "personName": { "type": "string", "maxLength": 128 },
+        "relationship": { "type": "string", "maxLength": 128 },
+        "yearOrEra": { "type": "string", "maxLength": 64 },
+        "eligibleForPhotoRecall": { "type": "boolean" },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "circleId", "imageUrl", "titleAs", "titleEn"]
+    },
+    "ActivitySession": {
+      "title": "ActivitySession",
+      "description": "Completed patient activity session log",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "circleId": { "type": "string", "maxLength": 128 },
+        "activityId": { "type": "string", "maxLength": 64 },
+        "completedAt": { "type": "string", "maxLength": 64 },
+        "durationSeconds": { "type": "number" },
+        "hintsUsed": { "type": "number" },
+        "completedSuccessfully": { "type": "boolean" },
+        "comfortRating": { "type": "string", "enum": ["good", "ok", "uncomfortable"] }
+      },
+      "required": ["id", "circleId", "activityId", "completedAt"]
+    },
+    "HelpEvent": {
+      "title": "HelpEvent",
+      "description": "Patient help or distress escalation log",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "circleId": { "type": "string", "maxLength": 128 },
+        "triggeredAt": { "type": "string", "maxLength": 64 },
+        "screenSource": { "type": "string", "maxLength": 64 },
+        "resolved": { "type": "boolean" }
+      },
+      "required": ["id", "circleId", "triggeredAt"]
+    },
+    "CaregiverAlert": {
+      "title": "CaregiverAlert",
+      "description": "Notification alert for caregivers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "circleId": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "maxLength": 64 },
+        "severity": { "type": "string", "enum": ["info", "warning", "urgent"] },
+        "title": { "type": "string", "maxLength": 256 },
+        "message": { "type": "string", "maxLength": 512 },
+        "timestamp": { "type": "string", "maxLength": 64 },
+        "acknowledged": { "type": "boolean" }
+      },
+      "required": ["id", "circleId", "type", "title", "message"]
+    },
+    "WeeklySummary": {
+      "title": "WeeklySummary",
+      "description": "7-day caregiver observational narrative digest",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "circleId": { "type": "string", "maxLength": 128 },
+        "weekLabel": { "type": "string", "maxLength": 64 },
+        "contentMarkdown": { "type": "string", "maxLength": 10000 },
+        "approved": { "type": "boolean" },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "circleId", "weekLabel", "contentMarkdown"]
+    },
+    "PairingCode": {
+      "title": "PairingCode",
+      "description": "Deterministic 6-digit device pairing codes for patient tablet setup",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 32 },
+        "circleId": { "type": "string", "maxLength": 128 },
+        "circleName": { "type": "string", "maxLength": 128 },
+        "personName": { "type": "string", "maxLength": 128 },
+        "expiresAt": { "type": "string", "maxLength": 64 },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "used": { "type": "boolean" }
+      },
+      "required": ["id", "circleId", "expiresAt", "used"]
+    },
+    "PatientDevice": {
+      "title": "PatientDevice",
+      "description": "Registered patient tablet or phone device paired with circle",
+      "type": "object",
+      "properties": {
+        "deviceId": { "type": "string", "maxLength": 128 },
+        "circleId": { "type": "string", "maxLength": 128 },
+        "deviceType": { "type": "string", "maxLength": 64 },
+        "pairedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["deviceId", "circleId", "pairedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles for authenticated caregivers"
+    },
+    "/pairingCodes/{code}": {
+      "schema": "PairingCode",
+      "description": "Deterministic device pairing verification codes"
+    },
+    "/careCircles/{circleId}": {
+      "schema": "CareCircle",
+      "description": "Root care circle entity"
+    },
+    "/careCircles/{circleId}/devices/{deviceId}": {
+      "schema": "PatientDevice",
+      "description": "Paired patient devices for the circle"
+    },
+    "/careCircles/{circleId}/planItems/{planItemId}": {
+      "schema": "PlanItem",
+      "description": "Care plan timeline items for the circle"
+    },
+    "/careCircles/{circleId}/memories/{memoryId}": {
+      "schema": "MemoryItem",
+      "description": "Memory gallery photos for the circle"
+    },
+    "/careCircles/{circleId}/activitySessions/{sessionId}": {
+      "schema": "ActivitySession",
+      "description": "Activity session logs for patient"
+    },
+    "/careCircles/{circleId}/helpEvents/{helpId}": {
+      "schema": "HelpEvent",
+      "description": "Patient distress/help call incidents"
+    },
+    "/careCircles/{circleId}/alerts/{alertId}": {
+      "schema": "CaregiverAlert",
+      "description": "Caregiver notification alerts"
+    },
+    "/careCircles/{circleId}/summaries/{summaryId}": {
+      "schema": "WeeklySummary",
+      "description": "Caregiver weekly observational summaries"
+    }
+  }
+}

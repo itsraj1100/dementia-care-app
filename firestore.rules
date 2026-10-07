@@ -1,0 +1,139 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isCircleMember(circleId) {
+      return isSignedIn() &&
+        isValidId(circleId) &&
+        (
+          !exists(/databases/$(database)/documents/careCircles/$(circleId)) ||
+          get(/databases/$(database)/documents/careCircles/$(circleId)).data.primaryCaregiverUid == request.auth.uid ||
+          (
+            'memberUids' in get(/databases/$(database)/documents/careCircles/$(circleId)).data &&
+            request.auth.uid in get(/databases/$(database)/documents/careCircles/$(circleId)).data.memberUids
+          )
+        );
+    }
+
+    // Test connection check
+    match /test/{docId} {
+      allow read: if isValidId(docId);
+      allow write: if false;
+    }
+
+    // Device Pairing codes
+    match /pairingCodes/{code} {
+      allow get: if isValidId(code);
+      allow create: if isSignedIn() && isValidId(code);
+      allow update: if isValidId(code);
+      allow delete: if isSignedIn() && isValidId(code);
+      allow list: if false;
+    }
+
+    // User profiles collection
+    match /users/{userId} {
+      allow get, update, delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow create: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if false;
+    }
+
+    // Care Circles root collection
+    match /careCircles/{circleId} {
+      allow get: if isSignedIn() && isValidId(circleId) && (
+        resource == null ||
+        resource.data.primaryCaregiverUid == request.auth.uid ||
+        ('memberUids' in resource.data && request.auth.uid in resource.data.memberUids)
+      );
+      allow create: if isSignedIn() && isValidId(circleId) && (
+        request.resource.data.primaryCaregiverUid == request.auth.uid
+      );
+      allow update: if isSignedIn() && isValidId(circleId) && (
+        resource.data.primaryCaregiverUid == request.auth.uid ||
+        ('memberUids' in resource.data && request.auth.uid in resource.data.memberUids)
+      );
+      allow delete: if isSignedIn() && isValidId(circleId) && (
+        resource.data.primaryCaregiverUid == request.auth.uid
+      );
+      allow list: if isSignedIn() && (
+        resource.data.primaryCaregiverUid == request.auth.uid ||
+        ('memberUids' in resource.data && request.auth.uid in resource.data.memberUids)
+      );
+
+      // Subcollection: Devices
+      match /devices/{deviceId} {
+        allow get, delete: if isValidId(deviceId);
+        allow list: if isCircleMember(circleId);
+        allow create, update: if isValidId(deviceId);
+      }
+
+      // Subcollection: Plan Items
+      match /planItems/{planItemId} {
+        allow get, delete: if isCircleMember(circleId) && isValidId(planItemId);
+        allow list: if isCircleMember(circleId);
+        allow create, update: if isCircleMember(circleId) && isValidId(planItemId);
+      }
+
+      // Subcollection: Memories
+      match /memories/{memoryId} {
+        allow get, delete: if isCircleMember(circleId) && isValidId(memoryId);
+        allow list: if isCircleMember(circleId);
+        allow create, update: if isCircleMember(circleId) && isValidId(memoryId);
+      }
+
+      // Subcollection: Activity Sessions
+      match /activitySessions/{sessionId} {
+        allow get, delete: if isCircleMember(circleId) && isValidId(sessionId);
+        allow list: if isCircleMember(circleId);
+        allow create, update: if isCircleMember(circleId) && isValidId(sessionId);
+      }
+
+      // Subcollection: Help Events
+      match /helpEvents/{helpId} {
+        allow get, delete: if isCircleMember(circleId) && isValidId(helpId);
+        allow list: if isCircleMember(circleId);
+        allow create, update: if isCircleMember(circleId) && isValidId(helpId);
+      }
+
+      // Subcollection: Alerts
+      match /alerts/{alertId} {
+        allow get, delete: if isCircleMember(circleId) && isValidId(alertId);
+        allow list: if isCircleMember(circleId);
+        allow create, update: if isCircleMember(circleId) && isValidId(alertId);
+      }
+
+      // Subcollection: Summaries
+      match /summaries/{summaryId} {
+        allow get, delete: if isCircleMember(circleId) && isValidId(summaryId);
+        allow list: if isCircleMember(circleId);
+        allow create, update: if isCircleMember(circleId) && isValidId(summaryId);
+      }
+
+      // Subcollection: Adaptation Decisions
+      match /adaptationDecisions/{decisionId} {
+        allow get, delete: if isCircleMember(circleId) && isValidId(decisionId);
+        allow list: if isCircleMember(circleId);
+        allow create, update: if isCircleMember(circleId) && isValidId(decisionId);
+      }
+
+      // Subcollection: Activity Configs
+      match /activityConfigs/{configId} {
+        allow get, delete: if isCircleMember(circleId) && isValidId(configId);
+        allow list: if isCircleMember(circleId);
+        allow create, update: if isCircleMember(circleId) && isValidId(configId);
+      }
+    }
+  }
+}
